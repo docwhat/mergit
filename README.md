@@ -1,6 +1,15 @@
 # Mergit
 
-TODO: Write a gem description
+Mergit is a way to merge a bunch of `require`d files into one file.
+
+This is useful to distribute single-file ruby executables, such as administration scripts, simple tools, etc.  Yet allows you to break
+files out for easy design, programming and testing.
+
+## Limitations
+
+Mergit uses simple text processing, therefore it can be tripped up.  Some known problems include:
+
+* `require` statements nested in code instead of at outermost scope of a file.
 
 ## Installation
 
@@ -18,7 +27,13 @@ Or install it yourself as:
 
 ## Usage
 
+### Command Line Tool
+
 TODO: Write usage instructions here
+
+### Library API
+
+TODO: Write API description here
 
 ## Contributing
 
