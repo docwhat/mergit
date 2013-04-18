@@ -131,6 +131,35 @@ describe Mergit::Processor do
         subject.should_not_receive(:emit)
       end
     end
+
+    context "with a replacements" do
+      let(:replacements) do
+        {
+          'VERSION' => '1.2.3',
+          /PROG\s*NAME/ => 'Awesome Program',
+        }
+      end
+
+      context "matching on a string" do
+        let(:ruby_string) { "puts 'The version is VERSION'" }
+        let(:expected_string) { ruby_string.sub('VERSION', '1.2.3') }
+        after { subject.scan_line ruby_string }
+
+        it "should replace VERSION" do
+          subject.should_receive(:emit).with(expected_string)
+        end
+      end
+
+      context "matching on a regexp" do
+        let(:ruby_string) { "puts 'The program is PROGNAME.'" }
+        let(:expected_string) { ruby_string.sub('PROGNAME', 'Awesome Program') }
+        after { subject.scan_line ruby_string }
+
+        it "should replace PROGNAME" do
+          subject.should_receive(:emit).with(expected_string)
+        end
+      end
+    end
   end
 
   describe "string_split" do

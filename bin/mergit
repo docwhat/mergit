@@ -42,6 +42,13 @@ class MergitProgram
         end
       end
 
+      opts.on('-r', '--replace MATCH=REPLACEMENT', String,
+             "Replaces all occurrences of MATCH with REPLACEMENT. If MATCH is between / characters, then it'll be used as a case-sensitive regexp. Can be specified multiple times.") do |m|
+        match, replace = m.split(/=/)
+        match = Regexp.new(match.slice(1..-2)) if match.start_with?('/') && match.end_with?('/')
+        mergit.replacements[match] = replace
+      end
+
       opts.on('-d', '--debug', "Turn on debugging.") do
         @debug = true
       end

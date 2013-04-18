@@ -80,6 +80,9 @@ class Mergit
           scan_file requirement
         end
       else
+        replacements.each_key do |string_to_replace|
+          line.gsub!(string_to_replace, replacements[string_to_replace])
+        end
         emit line
       end
     end
