@@ -1,3 +1,95 @@
 #!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
 
+$: << File.expand_path('../../lib/', __FILE__) if File.directory?(File.expand_path('../../lib/', __FILE__))
 require 'mergit'
+require 'optparse'
+
+class MergitProgram
+  attr_accessor :output
+  attr_reader   :input
+
+  def err msg
+    $stderr.puts "* error: #{msg}"
+    exit 1
+  end
+
+  def debug msg
+    $stderr.puts "* debug: #{msg}"
+  end
+
+  def mergit
+    @mergit ||= Mergit.new()
+  end
+
+  def parse_options
+    # Defaults
+    @output = $stdout
+
+    # Parser
+    optparse = OptionParser.new do |opts|
+      opts.banner =    "Usage: #{opts.program_name} [OPTIONS] ruby-file"
+      opts.define_head "Merges all require's into one ruby file."
+      opts.separator   ''
+
+      opts.on('-l', '--lib DIR', String,
+              "Adds DIR to the list of directories to look for require'd files.") do |d|
+        d = Pathname.new(d)
+        if d.directory?
+          mergit.search_path.unshift d.realpath.to_s
+        else
+          err "'#{d}' is not a directory."
+        end
+      end
+
+      opts.on('-d', '--debug', "Turn on debugging.") do
+        @debug = true
+      end
+      opts.on('-o', '--output FILE', String,
+              "Where to output the merged ruby script.") do |f|
+        @output = File.open(f, 'w') unless '-' == f
+      end
+
+      opts.on_tail('-V', '--version', 'Show the version.') do
+        $stderr.puts "#{opts.program_name} version: #{Mergit::VERSION}"
+        exit
+      end
+
+      opts.on_tail('-h', '--help', 'This Help.') do
+        $stderr.puts opts
+        exit
+      end
+    end
+
+    arguments = optparse.parse!
+
+    if arguments.size == 0
+      err "You need to specify the ruby file to merge."
+    elsif arguments.size > 1
+      err "You can only specify one ruby file to merge at a time."
+    end
+
+    if '-' == arguments.first
+      @input = $stdin
+    else
+      @input = File.open(arguments.first, 'r')
+    end
+  end
+
+  def run
+    parse_options
+    debug "Search Path: #{mergit.search_path.inspect}"
+    debug "Input:       #{input.inspect}"
+    debug "Output:      #{output.inspect}"
+    input_string = @input.read
+    @input.close
+    output_string = mergit.process(input_string)
+    @output.write output_string
+  end
+end
+
+if __FILE__ == $0
+  MergitProgram.new.run
+end
+
+# EOF

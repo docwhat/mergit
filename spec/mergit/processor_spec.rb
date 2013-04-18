@@ -42,10 +42,16 @@ describe Mergit::Processor do
 
   describe "scan_file" do
     subject { Mergit::Processor.new(search_path, replacements, :string => '', :do_not_close => true) }
+
     context "of an existing lib_file" do
       let(:lib_file) { Pathname.new('../../../lib/mergit/version.rb').expand_path(__FILE__) }
       let(:relative_lib_file) { 'lib/mergit/version.rb' }
       let(:lib_name) { lib_file.basename '.rb' }
+
+      it "should call .scan_line multiple times" do
+        subject.should_receive(:scan_line).at_least(3).times
+        subject.scan_file(lib_file)
+      end
 
       context "then the output" do
         before { subject.scan_file(lib_file) }
@@ -69,9 +75,87 @@ describe Mergit::Processor do
       subject { Mergit::Processor.new(search_path, replacements, :string => '', :do_not_close => true) }
       before { subject.scan_file(lib_file) }
 
-      it "should contain a required file" do
+      it "should contain the required file" do
         subject.output.should include(required_content)
       end
+    end
+  end
+
+  describe "scan" do
+    subject { Mergit::Processor.new(search_path, replacements, :string => '', :do_not_close => true) }
+
+    context "with a string" do
+      let(:ruby_string) { "puts 'hello'\nrequire 'pathname'\n\nputs 'goodbye'\n" }
+
+      context "should call .scan_line" do
+        after { subject.scan(ruby_string) }
+
+        it "multiple times" do
+          subject.should_receive(:scan_line).at_least(3).times
+        end
+
+        it "with the contents of the contents of ruby_string" do
+          ruby_string.split("\n").each do |line|
+            subject.should_receive(:scan_line).with(line).once.ordered
+          end
+        end
+      end
+
+      context "then the output" do
+        before { subject.scan(ruby_string) }
+
+        it "contain the contents of lib_file" do
+          subject.output.should include(ruby_string)
+        end
+      end
+    end
+  end
+
+  describe "scan_line" do
+    subject { Mergit::Processor.new(search_path, replacements, :string => '', :do_not_close => true) }
+
+    context "given a single requires" do
+      let(:ruby_string) { "require 'mergit/version'" }
+      after { subject.scan_line ruby_string }
+
+      it "should call scan_file()" do
+        subject.should_receive(:scan_file).with(Pathname.new('../../../lib/mergit/version.rb').expand_path(__FILE__)).once
+      end
+    end
+  end
+
+  describe "string_split" do
+    subject { Mergit::Processor.new(search_path, replacements, :string => '') }
+    let(:example_parts) { [ 'one', '', 'two', 'three' ] }
+
+    context "with unix newlines" do
+      let(:example_string) { example_parts.join("\n") }
+      it "should be correct" do
+        subject.string_split(example_string).should eq(example_parts)
+      end
+    end
+
+    context "with windows newlines" do
+      let(:example_string) { example_parts.join("\r\n") }
+      it "should be correct" do
+        subject.string_split(example_string).should eq(example_parts)
+      end
+    end
+  end
+
+  context "with looping requires" do
+    let(:dir) { EXAMPLE_DIR + 'loop' }
+    subject do
+      Mergit::Processor.new(
+        [ dir ],
+        {},
+        :string => '',
+        :do_not_close => true,
+      )
+    end
+
+    it "should not go into an infinite loop" do
+      subject.scan_file(dir + 'a.rb')
     end
   end
 

@@ -1,5 +1,6 @@
 require 'mergit/errors'
 require 'pathname'
+require 'stringio'
 
 class Mergit
   class Processor
@@ -34,40 +35,50 @@ class Mergit
       end
     end
 
+    def scan_line line
+      line.chomp!
+      if line =~ /^\s*require\s+'([^']+)'\s*$/ or line =~ /^\s*require\s+"([^"]+)"\s*$/
+        requirement = find_requirement($1)
+        if requirement.nil?
+          emit line
+        else
+          scan_file requirement
+        end
+      else
+        emit line
+      end
+    end
+
     def scan_file filename
       relative_filename = if filename.relative?
                             filename
                           else
                             filename.relative_path_from(Pathname.pwd)
                           end
-      puts "### MERGIT: Start of '#{relative_filename}'"
-      filename.readlines.each do |line|
-        line.chomp!
-        if line =~ /^\s*require\s+'([^']+)'\s*$/ or line =~ /^\s*require\s+"([^"]+)"\s*$/
-          requirement = find_requirement($1)
-          if requirement.nil?
-            puts line
-          else
-            scan_file requirement
-          end
-        else
-          puts line
-        end
+      if @visited_files.include? relative_filename
+        return
+      else
+        @visited_files << relative_filename
       end
-      puts "### MERGIT: End of '#{relative_filename}'"
+      emit "### MERGIT: Start of '#{relative_filename}'"
+      filename.readlines.each { |line| scan_line line }
+      emit "### MERGIT: End of '#{relative_filename}'"
     end
 
     def scan string
+      string_split(string).each { |line| scan_line line }
+    end
 
+    def string_split string
+      string.split(/\n|\r\n/)
     end
 
     def output
-      @output.string
+      @output.close unless @output.closed?
+      @final_output ||= @output.string
     end
 
-    private
-
-    def puts string
+    def emit string
       @output.puts string
     end
 
