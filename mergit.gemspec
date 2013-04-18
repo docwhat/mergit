@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = Mergit::VERSION
   spec.authors       = ["Christian Höltje"]
   spec.email         = ["docwhat@gerf.org"]
-  spec.description   = %q{Merge 'require'd files into one file.}
-  spec.summary       = %q{Ever wanted to merge all your 'require'd files into one file for easy distribution? Mergit is your friend!}
+  spec.summary       = %q{Merge 'require'd files into one file.}
+  spec.description   = %q{Ever wanted to merge all your 'require'd files into one file for easy distribution? Mergit is your friend!}
   spec.homepage      = "https://github.com/docwhat/mergit"
   spec.license       = "MIT"
 
