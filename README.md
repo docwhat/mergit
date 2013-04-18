@@ -1,5 +1,9 @@
 # Mergit
 
+* [![Build Status](https://secure.travis-ci.org/docwhat/mergit.png)](http://travis-ci.org/docwhat/mergit)
+* [![Dependencies](https://gemnasium.com/docwhat/mergit.png)](https://gemnasium.com/docwhat/mergit)
+* [![Coverage Status](https://coveralls.io/repos/docwhat/mergit/badge.png?branch=master)](https://coveralls.io/r/docwhat/mergit)
+
 Mergit is a way to merge a bunch of `require`d files into one file.
 
 This is useful to distribute single-file ruby executables, such as administration scripts, simple tools, etc.  Yet allows you to break
