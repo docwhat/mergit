@@ -19,7 +19,7 @@ Mergit uses simple text processing, therefore it can be tripped up.  Some known 
 
 Add this line to your application's Gemfile:
 
-    gem 'mergit'
+    gem 'mergit', '~> 1.0'
 
 And then execute:
 
@@ -28,6 +28,8 @@ And then execute:
 Or install it yourself as:
 
     $ gem install mergit
+
+Note that Mergit uses [Semantic Versioning](http://semver.org/).
 
 ## Usage
 
