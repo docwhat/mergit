@@ -42,6 +42,14 @@ You can specify the `--lib` flag multiple times.
 
 Use the `--output` flag to send the resulting output to someplace other than stdout.
 
+#### Additional syntax
+
+You can also cause any line to be skipped by adding a Mergit directive in a comment at the end of the line.
+
+Example:
+
+    raise "This won't be in the merged output." # MERGIT: skip
+
 ### Library API
 
 Simple usage:

@@ -122,6 +122,15 @@ describe Mergit::Processor do
         subject.should_receive(:scan_file).with(Pathname.new('../../../lib/mergit/version.rb').expand_path(__FILE__)).once
       end
     end
+
+    context "given a line with MERGIT: skip" do
+      let(:ruby_string) { "this should never be seen # MERGIT: skip " }
+      after { subject.scan_line ruby_string }
+
+      it "should not call emit" do
+        subject.should_not_receive(:emit)
+      end
+    end
   end
 
   describe "string_split" do
