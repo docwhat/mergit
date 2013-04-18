@@ -33,11 +33,28 @@ Or install it yourself as:
 
 ### Command Line Tool
 
-TODO: Write usage instructions here
+The command line tool, `mergit`, is pretty self-explanatory.
+
+You specify the ruby file you want `require`s merged into on the command line (via standard in, if you specify `-`) and any library directories
+you want `require`d from.
+
+You can specify the `--lib` flag multiple times.
+
+Use the `--output` flag to send the resulting output to someplace other than stdout.
 
 ### Library API
 
-TODO: Write API description here
+Simple usage:
+
+```
+search_path = [ '/path/to/lib', '/path/to/other/lib' ]
+mergit = Mergit.new(:search_path => search_path)
+
+string_of_merged_file = mergit.process_file('/path/to/file')
+# or
+string_of_merged_string = mergit.process(some_string)
+
+```
 
 ## Contributing
 

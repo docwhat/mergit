@@ -29,11 +29,11 @@ class MergitProgram
     # Parser
     optparse = OptionParser.new do |opts|
       opts.banner =    "Usage: #{opts.program_name} [OPTIONS] ruby-file"
-      opts.define_head "Merges all require's into one ruby file."
+      opts.define_head "Merges all require's found in the specified lib directories into one ruby file."
       opts.separator   ''
 
       opts.on('-l', '--lib DIR', String,
-              "Adds DIR to the list of directories to look for require'd files.") do |d|
+              "Adds DIR to the list of directories to look for require'd files. Can be specified multiple times.") do |d|
         d = Pathname.new(d)
         if d.directory?
           mergit.search_path.unshift d.realpath.to_s
