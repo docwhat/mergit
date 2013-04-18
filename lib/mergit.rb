@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'mergit/version'
 require 'mergit/processor'
 require 'mergit/errors'

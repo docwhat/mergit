@@ -1,3 +1,4 @@
+# coding: utf-8
 require 'mergit/errors'
 require 'pathname'
 require 'stringio'
