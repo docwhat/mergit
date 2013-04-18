@@ -150,7 +150,7 @@ describe Mergit::Processor do
         [ dir ],
         {},
         :string => '',
-        :do_not_close => true,
+        :do_not_close => true
       )
     end
 
