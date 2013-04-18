@@ -40,9 +40,19 @@ you want `require`d from.
 
 You can specify the `--lib` flag multiple times.
 
+There is also a `--replace` flag that lets you specify a string or regular expression (a string surrounded by `/`) that should be replaced.
+
+Example:
+
+    bin/mergit --replace mouse=cat filename
+
+This will replace all occurances of "mouse" with "cat".
+
+You can specify the `--replace` flag multiple times.
+
 Use the `--output` flag to send the resulting output to someplace other than stdout.
 
-#### Additional syntax
+#### MERGIT directives
 
 You can also cause any line to be skipped by adding a Mergit directive in a comment at the end of the line.
 
