@@ -56,6 +56,8 @@ string_of_merged_string = mergit.process(some_string)
 
 ```
 
+For more detailed information, see the [documentation](http://rubydoc.info/gems/mergit/frames).
+
 ## Contributing
 
 1. Fork it
