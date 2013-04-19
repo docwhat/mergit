@@ -4,6 +4,10 @@ require 'mergit/processor'
 describe Mergit::Processor do
   let(:search_path)  { [EXAMPLE_DIR] }
   let(:replacements)  { {} }
+  let(:do_not_close) { false }  # Setting this to true prevents the @output being closed (and preventing further calls of scan_*())
+  let(:mergit_options) { { :string => '', :do_not_close => do_not_close } }
+  subject { Mergit::Processor.new(search_path, replacements, mergit_options) }
+
   let(:no_requires_file) { EXAMPLE_DIR + 'no_requires.rb' }
   let(:has_requires_file) { EXAMPLE_DIR + 'has_requires.rb' }
 
@@ -18,8 +22,6 @@ describe Mergit::Processor do
   end
 
   describe "find_requirement" do
-    subject { Mergit::Processor.new(search_path, replacements, :string => '') }
-
     context "with a known lib-file" do
       it "should find mergit.rb" do
         subject.find_requirement(has_requires_file.basename '.rb').should eq(has_requires_file)
@@ -32,8 +34,6 @@ describe Mergit::Processor do
   end
 
   describe "find_requirement!" do
-    subject { Mergit::Processor.new(search_path, replacements, :string => '') }
-
     context "with a known lib-file" do
       it "should find mergit.rb" do
         subject.find_requirement!(has_requires_file.basename '.rb').should eq(has_requires_file)
@@ -47,7 +47,7 @@ describe Mergit::Processor do
   end
 
   describe "scan_file" do
-    subject { Mergit::Processor.new(search_path, replacements, :string => '', :do_not_close => true) }
+    let(:do_not_close) { true }
 
     context "of an existing lib_file" do
       it "should call .scan_line multiple times" do
@@ -58,11 +58,11 @@ describe Mergit::Processor do
       context "then the output" do
         let(:relative_path) { no_requires_file.relative_path_from(Pathname.new('../../..').expand_path(__FILE__)) }
         before { subject.scan_file(no_requires_file) }
-        it "should start with the merget header" do
+        it "should start with a MERGIT comment" do
           subject.output.should =~ /\A### MERGIT: Start of '#{relative_path}'$/
         end
 
-        it "should end with the merget header" do
+        it "should end with a MERGIT comment" do
           subject.output.should =~ /^### MERGIT: End of '#{relative_path}'\Z/
         end
 
@@ -73,7 +73,6 @@ describe Mergit::Processor do
     end
 
     context "with a lib_file that has a requires" do
-      subject { Mergit::Processor.new(search_path, replacements, :string => '', :do_not_close => true) }
       before { subject.scan_file(has_requires_file) }
 
       it "should contain the required file" do
@@ -83,7 +82,7 @@ describe Mergit::Processor do
   end
 
   describe "scan" do
-    subject { Mergit::Processor.new(search_path, replacements, :string => '', :do_not_close => true) }
+    let(:do_not_close) { true }
 
     context "with a string" do
       let(:ruby_string) { "puts 'hello'\nrequire 'pathname'\n\nputs 'goodbye'\n" }
@@ -113,7 +112,7 @@ describe Mergit::Processor do
   end
 
   describe "scan_line" do
-    subject { Mergit::Processor.new(search_path, replacements, :string => '', :do_not_close => true) }
+    let(:do_not_close) { true }
 
     context "given a single requires" do
       let(:ruby_string) { "require 'no_requires'" }
@@ -172,7 +171,6 @@ describe Mergit::Processor do
   end
 
   describe "string_split" do
-    subject { Mergit::Processor.new(search_path, replacements, :string => '') }
     let(:example_parts) { [ 'one', '', 'two', 'three' ] }
 
     context "with unix newlines" do
@@ -191,15 +189,9 @@ describe Mergit::Processor do
   end
 
   context "with looping requires" do
+    let(:search_path) { [dir] }
+    let(:do_not_close) { true }
     let(:dir) { EXAMPLE_DIR + 'loop' }
-    subject do
-      Mergit::Processor.new(
-        [ dir ],
-        {},
-        :string => '',
-        :do_not_close => true
-      )
-    end
 
     it "should not go into an infinite loop" do
       subject.scan_file(dir + 'a.rb')
