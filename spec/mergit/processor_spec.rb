@@ -10,6 +10,7 @@ describe Mergit::Processor do
 
   let(:no_requires_file) { EXAMPLE_DIR + 'no_requires.rb' }
   let(:has_requires_file) { EXAMPLE_DIR + 'has_requires.rb' }
+  let(:relative_path_file) { EXAMPLE_DIR + 'relative' + 'path.rb' }
 
   describe "#new" do
     context "when passed a filename" do
@@ -22,10 +23,36 @@ describe Mergit::Processor do
   end
 
   describe "find_requirement" do
-    context "with a known lib-file" do
-      it "should find mergit.rb" do
-        subject.find_requirement(has_requires_file.basename '.rb').should eq(has_requires_file)
+    let(:expected_filename) { has_requires_file }
+
+    shared_examples "find requirement" do
+      it "should return an absolute path" do
+        subject.find_requirement(filename).should be_absolute
       end
+
+      it "should return the expected Pathname" do
+        subject.find_requirement(filename).should eq(expected_filename)
+      end
+    end
+
+    context "with relative string filename" do
+      let(:filename) { expected_filename.basename('.rb').to_s }
+      it_behaves_like "find requirement"
+    end
+
+    context "with absolute string filename" do
+      let(:filename) { expected_filename.to_s }
+      it_behaves_like "find requirement"
+    end
+
+    context "with relative Pathname filename" do
+      let(:filename) { expected_filename.basename('.rb') }
+      it_behaves_like "find requirement"
+    end
+
+    context "with absolute Pathname filename" do
+      let(:filename) { expected_filename }
+      it_behaves_like "find requirement"
     end
 
     it "should return nil if it doesn't exist" do
@@ -33,50 +60,75 @@ describe Mergit::Processor do
     end
   end
 
-  describe "find_requirement!" do
-    context "with a known lib-file" do
-      it "should find mergit.rb" do
-        subject.find_requirement!(has_requires_file.basename '.rb').should eq(has_requires_file)
-      end
-    end
-
-    it "should raise an exception when it doesn't exist" do
-      expect { subject.find_requirement!('does-not-exist') }.
-        to raise_error(Mergit::RequirementNotFound)
-    end
-  end
-
   describe "scan_file" do
     let(:do_not_close) { true }
 
-    context "of an existing lib_file" do
-      it "should call .scan_line multiple times" do
-        subject.should_receive(:scan_line).exactly(3).times
-        subject.scan_file(no_requires_file)
+    shared_examples "it emits a string that" do
+      before { subject.scan_file(path) }
+
+      it "should start with a MERGIT comment" do
+        subject.output.should =~ /\A### MERGIT: Start of '#{path}'$/
       end
 
-      context "then the output" do
-        let(:relative_path) { no_requires_file.relative_path_from(Pathname.new('../../..').expand_path(__FILE__)) }
-        before { subject.scan_file(no_requires_file) }
-        it "should start with a MERGIT comment" do
-          subject.output.should =~ /\A### MERGIT: Start of '#{relative_path}'$/
-        end
-
-        it "should end with a MERGIT comment" do
-          subject.output.should =~ /^### MERGIT: End of '#{relative_path}'\Z/
-        end
-
-        it "contain the contents of lib_file" do
-          subject.output.should include(no_requires_file.read)
-        end
+      it "should end with a MERGIT comment" do
+        subject.output.should =~ /^### MERGIT: End of '#{path}'\Z/
       end
     end
 
-    context "with a lib_file that has a requires" do
-      before { subject.scan_file(has_requires_file) }
+    context "with an absolute path" do
+      let(:path) { no_requires_file }
+      it_behaves_like "it emits a string that"
+    end
+
+    context "with a relative path" do
+      let(:path) { 'relative/path' }
+      it_behaves_like "it emits a string that"
+    end
+
+    context "of an existing lib_file" do
+      let(:lib_file) { no_requires_file }
+
+      it "should call .scan_line multiple times" do
+        subject.should_receive(:scan_line).exactly(3).times
+        subject.scan_file(lib_file)
+      end
+
+      it "should return true" do
+        subject.scan_file(lib_file).should be_true
+      end
+
+      it "contain the contents of lib_file" do
+        subject.scan_file(lib_file)
+        subject.output.should include(lib_file.read)
+      end
+    end
+
+    it "should call .find_requirement with the filename" do
+      subject.should_receive(:find_requirement).with('some_file_name')
+      subject.scan_file('some_file_name')
+    end
+
+    context "with a filename that contains a requires" do
+      let(:filename) { has_requires_file }
+      let(:required_file) { no_requires_file }
+      before { subject.scan_file(filename) }
 
       it "should contain the required file" do
-        subject.output.should include(no_requires_file.read)
+        subject.output.should include(required_file.read)
+      end
+    end
+
+    context "called a second time with the same filename" do
+      before { subject.scan_file(no_requires_file) }
+
+      it "should return true" do
+        subject.scan_file(no_requires_file).should be_true
+      end
+    end
+
+    context "with a filename that doesn't exist" do
+      it "should return false" do
+        subject.scan_file('file-does-not-exist').should be_false
       end
     end
   end
@@ -119,14 +171,14 @@ describe Mergit::Processor do
       after { subject.scan_line ruby_string }
 
       it "should call scan_file()" do
-        subject.should_receive(:scan_file).with(no_requires_file).once
+        subject.should_receive(:scan_file).with('no_requires').once
       end
 
       context "that has a comment after it" do
         let(:ruby_string) { "require 'no_requires' # this is a comment" }
 
         it "should call scan_file()" do
-          subject.should_receive(:scan_file).with(no_requires_file).once
+          subject.should_receive(:scan_file).with('no_requires').once
         end
       end
     end

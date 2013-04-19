@@ -39,30 +39,15 @@ class Mergit
 
     # Finds a library using the {#search_path}
     #
-    # @param [String] lib_name The name of the library to look for.
+    # @param [String, Pathname] filename The name of the library to look for.
     # @return [Nil, Pathname] Returns `nil` if it isn't found or a {http://rubydoc.info/stdlib/pathname/frames Pathname} if it is found.
-    def find_requirement lib_name
+    def find_requirement filename
+      filename = Pathname.new filename
       @search_path.each do |directory|
-        possible_path = directory + "#{lib_name}.rb"
+        possible_path = directory + filename.dirname + "#{filename.basename('.rb')}.rb"
         return possible_path.realpath if possible_path.file?
       end
       nil
-    end
-
-
-    # Finds a library using the {#search_path}
-    #
-    # This is identical to {#find_requirement} except it raises {Mergit::RequirementNotFound} if
-    # it fails to find the library.
-    #
-    # @raise [Mergit::RequirementNotFound] if it can't find the library.
-    # @param (see #find_requirement)
-    # @return [Pathname] Returns the {http://rubydoc.info/stdlib/pathname/frames Pathname} of the library.
-    # @see #find_requirement
-    def find_requirement! lib_name
-      find_requirement(lib_name).tap do |retval|
-        raise Mergit::RequirementNotFound.new("Unabled to find require'd file: #{lib_name}") if retval.nil?
-      end
     end
 
     ## Scans a single line of the file.
@@ -77,12 +62,7 @@ class Mergit
       if line =~ /#\s*MERGIT:\s*skip\s*$/
         nil # do nothing
       elsif line =~ /^\s*require\s+'([^']+)'/ or line =~ /^\s*require\s+"([^"]+)"/
-        requirement = find_requirement($1)
-        if requirement.nil?
-          emit line
-        else
-          scan_file requirement
-        end
+        scan_file($1) or emit(line)
       else
         replacements.each_key do |string_to_replace|
           line.gsub!(string_to_replace, replacements[string_to_replace])
@@ -95,22 +75,22 @@ class Mergit
     #
     # It passes each line of the file to {#scan_line} for parsing.
     #
+    # If the `filename` was already scanned, it'll do nothing and return `true`.
+    #
+    # If the `filename` doesn't exist in the {#search_path}, then it'll return `false`.
+    #
     # @param [Pathname] filename The file to scan.
-    # @return [Nil]
+    # @return [FalseClass, TrueClass] Returns true if the file was emitted. Returns false if it cannot find the file in {#search_path}
     def scan_file filename
-      relative_filename = if filename.relative?
-                            filename
-                          else
-                            filename.relative_path_from(Pathname.pwd)
-                          end
-      if @visited_files.include? relative_filename
-        return
-      else
-        @visited_files << relative_filename
-      end
-      emit "### MERGIT: Start of '#{relative_filename}'"
-      filename.readlines.each { |line| scan_line line }
-      emit "### MERGIT: End of '#{relative_filename}'"
+      filename_path = find_requirement(filename)
+      return false if filename_path.nil?
+      return true if @visited_files.include? filename_path
+
+      @visited_files << filename_path
+      emit "### MERGIT: Start of '#{filename}'"
+      filename_path.readlines.each { |line| scan_line line }
+      emit "### MERGIT: End of '#{filename}'"
+      return true
     end
 
     ## Scans a string
