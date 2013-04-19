@@ -5,6 +5,17 @@ describe Mergit::Processor do
   let(:search_path)  { [LIB_PATH] }
   let(:replacements)  { {} }
 
+  describe "#new" do
+    context "when passed a filename" do
+      let(:lib_file) { File.expand_path('../../../lib/mergit/version.rb', __FILE__) }
+      after { Mergit::Processor.new(search_path, replacements, :filename => lib_file) }
+
+      it "should not add MERGIT comments" do
+        Mergit::Processor.any_instance.should_not_receive(:emit).with(/MERGIT/)
+      end
+    end
+  end
+
   describe "find_requirement" do
     subject { Mergit::Processor.new(search_path, replacements, :string => '') }
 

@@ -13,6 +13,10 @@ class Mergit
     # @return {Hash} A frozen hash with the rules for replacements.
     attr_reader :replacements
 
+    # All `require`d files will have 'MERGIT' start and end comments around them showing what file was included.
+    #
+    # The initial `:filename` or `:string` will not have 'MERGIT' comments.
+    #
     # @param [Array<Pathname, String>] search_path The list of directories to search.
     # @param [Hash] replacements A list of keywords to replace.
     # @param [Hash] options Either `:filename` or `:string` should be set.
@@ -24,7 +28,7 @@ class Mergit
       @output = StringIO.new
       begin
         if options.key?(:filename)
-          scan_file(Pathname.new(options[:filename]).realpath)
+          Pathname.new(options[:filename]).open('r') { |fp| scan(fp.read) }
         elsif options.key?(:string)
           scan(options[:string])
         end
@@ -111,7 +115,7 @@ class Mergit
 
     ## Scans a string
     #
-    # It splits a string up into individual line via {#string_split} and
+    # It splits a string up into individual lines via {#string_split} and
     # passes them to {#scan_line}.
     #
     # @param [String] string The string to parse.
