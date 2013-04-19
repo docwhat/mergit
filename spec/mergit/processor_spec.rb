@@ -121,6 +121,14 @@ describe Mergit::Processor do
       it "should call scan_file()" do
         subject.should_receive(:scan_file).with(Pathname.new('../../../lib/mergit/version.rb').expand_path(__FILE__)).once
       end
+
+      context "that has a comment after it" do
+        let(:ruby_string) { "require 'mergit/version' # this is a comment" }
+
+        it "should call scan_file()" do
+          subject.should_receive(:scan_file).with(Pathname.new('../../../lib/mergit/version.rb').expand_path(__FILE__)).once
+        end
+      end
     end
 
     context "given a line with MERGIT: skip" do

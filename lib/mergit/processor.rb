@@ -72,7 +72,7 @@ class Mergit
       line.chomp!
       if line =~ /#\s*MERGIT:\s*skip\s*$/
         nil # do nothing
-      elsif line =~ /^\s*require\s+'([^']+)'\s*$/ or line =~ /^\s*require\s+"([^"]+)"\s*$/
+      elsif line =~ /^\s*require\s+'([^']+)'/ or line =~ /^\s*require\s+"([^"]+)"/
         requirement = find_requirement($1)
         if requirement.nil?
           emit line
