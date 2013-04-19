@@ -27,7 +27,7 @@ Mergit uses simple text processing, therefore it can be tripped up.  Some known 
 
 Add this line to your application's Gemfile:
 
-    gem 'mergit', '~> 1.0'
+    gem 'mergit', '~> 1.1'
 
 And then execute:
 
