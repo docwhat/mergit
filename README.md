@@ -15,6 +15,38 @@ Some use cases include:
 * Simple tools
 * Programs that need to work on any ruby without installing gems
 
+## My original use case
+
+When I wrote the original mergit, my goal was to distribute development/build
+scripts to a variety of systems.
+
+These scripts had the following requirements:
+
+1. The scripts needed to be easy to install.
+    * Our developers hadn't had experience with Ruby yet.  This is before ruby
+      1.9.2 was released!
+    * We didn't have an in-house RPM server (which wouldn't help our Windows
+      systems anyway).
+2. The scripts needed minimal or no requirements.
+    * Bundler and RVM were new and a pain to automatically install.
+    * Not all systems had the (easy) root access needed to install required
+      gems or build tools.
+    * All the CentOS systems had Ruby (>= 1.8.7 by default)
+    * All the Windows systems could easily get a version of Ruby (a quirk of
+      our development/build environment).
+    * We had a mechanism to get a reasonably current ruby for Solaris.
+3. The scripts needed to work on Windows, Solaris, and CentOS.
+4. I wanted to write the scripts with the best practices; unit tests,
+one-class-per-file, SOLID design.
+    * I needed the scripts to work reliably, so I needed good tests.
+    * It was easier to work on if we followed SOLID design principles.
+
+The scripts I wrote in the end could be installed on any development or build
+system via a simple `curl` and only required *any* working ruby of version
+1.8.7 or greater.
+
+This was possible because all the `.rb` files were merged into single files, including the one gem I needed (the pure ruby `minitar`).
+
 ## Limitations
 
 Mergit uses simple text processing, therefore it can be tripped up.  Some known problems include:
@@ -82,6 +114,10 @@ Simple usage:
     string_of_merged_string = mergit.process(some_string)
 
 For more detailed information, see the [documentation](http://rubydoc.info/gems/mergit/frames).
+
+## Additional Notes
+
+To use up less space, you can compress the resulting script with `gzexe`.
 
 ## Contributing
 
