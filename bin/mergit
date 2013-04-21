@@ -71,7 +71,8 @@ class MergitProgram
     arguments = optparse.parse!
 
     if arguments.size == 0
-      err "You need to specify the ruby file to merge."
+      puts optparse
+      exit
     elsif arguments.size > 1
       err "You can only specify one ruby file to merge at a time."
     end
