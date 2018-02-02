@@ -1,7 +1,16 @@
 language: ruby
+cache: bundler
 rvm:
-  - 1.8.7
-  - 1.9.2
-  - 1.9.3
-script:
-  - bundle exec rspec
+- 2.3
+- 2.4
+- 2.5
+script: bundle exec rspec
+notifications:
+  email: false
+  pushover:
+    on_success: change
+    on_failure: always
+    api_key:
+      secure: B3R+HIs/OaGK3KJS7QC4GPMup/kJy0WDpP19esh55m11S6vYpyDsAwvgZIqdt7g/bGv1egvwKOkVKPk8SAGhCmob6lbCtZqpVvzp7A1NJ0Ga4TVL/b0zeqbeXqzq3SMjq3HfKxuLM64pPg5hjcv3MgxlsvM0mGOUHMNfMb+amlE=
+    users:
+      secure: XPpGl8qUUbE8kDdjV3J4IcVKakrics2mRX1z+ayraGv9pMpR9SPr6YFEtTS6M61SRgLZBxtfFjTs+CBNZ3Dl4SlAB1NZjSOxaDWh5YLTfeB2+E6le5iQLhb5FDs0LInEOCBpcV0vcrk/7EakRrlY2nLS5a8QlTcoRMUgRJsq6Vw=
